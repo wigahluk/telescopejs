@@ -34,11 +34,11 @@ The code in this library is pretty small but we still need a minimal pipeline fo
 Folder structure:
 
 ```
-_bundles/		   // UMD bundles
-lib/			     // ES5(commonjs) + source + .d.ts
-lib-esm/		   // ES5(esmodule) + source + .d.ts
-node_modules/  // You know what this is
-src/           // All Telescope source code is here
+_bundles/            // UMD bundles
+lib/        	     // ES5(commonjs) + source + .d.ts
+lib-esm/             // ES5(esmodule) + source + .d.ts
+node_modules/        // You know what this is
+src/                 // All Telescope source code is here
 package.json
 README.md
 tsconfig.json
