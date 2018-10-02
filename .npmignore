@@ -1,0 +1,25 @@
+# Ignore any hidden file
+.*
+
+# Ignore test files
+*.spec.js
+*.spec.ts
+
+# The distribution doesn't need any TSC not Webpack configuration
+**/tsconfig.json
+**/webpack.config.js
+
+# The distribution doesn't need node_modules as it will 
+# download them when installed
+node_modules
+
+# Coverage folders are only for development time
+coverage
+
+# The distribution doesn't need any Idea IDE files.
+.idea
+*.iml
+
+# We also don't need to distribute original TS files, 
+# only transpiled versions will get to the NPM repo.
+src

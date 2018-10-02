@@ -1,0 +1,12 @@
+# Node Modules are not versioned.
+node_modules
+
+# We don't version Idea IDE files, those are yours and yours alone.
+.idea
+*.iml
+
+# Generated files that doesn't need to be versioned
+lib
+lib-esm
+_bundles
+coverage

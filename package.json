@@ -1,0 +1,52 @@
+{
+  "name": "telescopejs",
+  "version": "0.1.0",
+  "description": "Another state managemnt library for JS echosystem, this time based on lenses and optics.",
+  "main": "index.js",
+  "scripts": {
+    "test:d": "karma start -dev",
+    "test": "karma start",
+    "build:common": "tsc",
+    "build:es6": "tsc -m es6 --outDir lib-esm",
+    "build:umd": "webpack --color -p",
+    "build": "npm run build:common && npm run build:es6 && npm run build:umd"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wigahluk/telescopejs.git"
+  },
+  "keywords": [
+    "state",
+    "management",
+    "lenses",
+    "optics"
+  ],
+  "author": "Oscar Ponce & Alexei Diaz",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/wigahluk/telescopejs/issues"
+  },
+  "homepage": "https://github.com/wigahluk/telescopejs#readme",
+  "dependencies": {},
+  "peerDependencies": {
+    "rxjs": ">= 6.0.0"
+  },
+  "devDependencies": {
+    "@types/jasmine": "2.8.8",
+    "awesome-typescript-loader": "5.2.1",
+    "istanbul-instrumenter-loader": "3.0.1",
+    "jasmine": "3.2.0",
+    "karma": "3.0.0",
+    "karma-chrome-launcher": "2.2.0",
+    "karma-coverage": "1.1.2",
+    "karma-jasmine": "1.1.2",
+    "karma-remap-coverage": "0.1.5",
+    "karma-sourcemap-loader": "0.3.7",
+    "karma-webpack": "3.0.5",
+    "rxjs": "6.3.3",
+    "source-map-loader": "0.2.4",
+    "typescript": "3.1.1",
+    "webpack": "4.20.2",
+    "webpack-cli": "^3.1.2"
+  }
+}
