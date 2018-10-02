@@ -22,9 +22,12 @@ export class Telescope<U> {
   static of<U>(initialState: U): Telescope<U> {
     const evolutions = new Subject();
     const evolver = <U>(evolution: Evolution<U>) => evolutions.next(evolution);
-    const stream = merge(of<Evolution<U>>((u) => u), evolutions, NEVER)
-      .pipe(scan((acc, elem: Evolution<U>) => elem(acc), initialState),
-        multicast(() => new ReplaySubject(1)), refCount());
+    const stream = merge(
+      of<Evolution<U>>((u) => u), evolutions, NEVER)
+      .pipe(
+        scan((acc, elem: Evolution<U>) => elem(acc), initialState),
+        multicast(() => new ReplaySubject(1)),
+        refCount());
     return new Telescope<U>(evolver, stream);
   }
 
