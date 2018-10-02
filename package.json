@@ -4,12 +4,13 @@
   "description": "Another state managemnt library for JS echosystem, this time based on lenses and optics.",
   "main": "index.js",
   "scripts": {
-    "test:d": "karma start -dev",
-    "test": "karma start",
     "build:common": "tsc",
     "build:es6": "tsc -m es6 --outDir lib-esm",
     "build:umd": "webpack --color -p",
-    "build": "npm run build:common && npm run build:es6 && npm run build:umd"
+    "build": "npm run build:common && npm run build:es6 && npm run build:umd",
+    "test:d": "karma start -dev",
+    "test": "karma start",
+    "tslint": "tslint -c tslint.json 'src/**/*.ts'"
   },
   "repository": {
     "type": "git",
@@ -45,8 +46,9 @@
     "karma-webpack": "3.0.5",
     "rxjs": "6.3.3",
     "source-map-loader": "0.2.4",
+    "tslint": "5.11.0",
     "typescript": "3.1.1",
     "webpack": "4.20.2",
-    "webpack-cli": "^3.1.2"
+    "webpack-cli": "3.1.2"
   }
 }
