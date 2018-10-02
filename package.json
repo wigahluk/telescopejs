@@ -7,7 +7,8 @@
     "build:common": "tsc",
     "build:es6": "tsc -m es6 --outDir lib-esm",
     "build:umd": "webpack --color -p",
-    "build": "npm run build:common && npm run build:es6 && npm run build:umd",
+    "build": "npm run clean && npm run tslint && npm run test && npm run build:common && npm run build:es6 && npm run build:umd",
+    "clean": "rm -r ./_bundles && rm -r ./lib && rm -r ./lib-esm",
     "test:d": "karma start -dev",
     "test": "karma start",
     "tslint": "tslint -c tslint.json 'src/**/*.ts'"
