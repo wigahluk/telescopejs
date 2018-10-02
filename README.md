@@ -3,11 +3,11 @@
 Telescope
 =========
 
-Telescope is another state management library for JS ecosystem, this time based on lenses. It's an alternatie to Redux for the brave as it's still a baby and is learning to give its first steps.
+Telescope is another state management library for JS ecosystem, this time based on lenses. It's an alternative to Redux for the brave as it's still a baby and is learning to give its first steps.
 
 ## The Basics
 
-What a Telescope is, what a lens is. What does it mean to maginfy. Some samples.
+What a Telescope is, what a lens is. What does it mean to magnify. Some samples.
 
 ## Composition
 
@@ -23,15 +23,15 @@ Same as above but for Angular.
 
 ## Lenses
 
-Lenses were first described and implemented by Edward Kmett for Haskell and since then have been getting more and more attention as a powerfull abstraction for composable accessors.
+Lenses were first described and implemented by Edward Kmett for Haskell and since then have been getting more and more attention as a powerful abstraction for composable accessors.
 
 Lenses are one of many other optics and while we only use lenses in Telescope, we do are planning to add Prisms and other toys to the box.
 
 ## Development
 
-The code in this library is pretty small but we still need a minimal pipeline for testing, building and ditributting.
+The code in this library is pretty small but we still need a minimal pipeline for testing, building and distributing.
 
-Folder strucuture:
+Folder structure:
 
 ```
 _bundles/		   // UMD bundles
