@@ -60,7 +60,7 @@ The way Telescope deals with this is a common pattern: Streams. But these are sp
 
 Fortunately, streams belong to a big family of things that can be _folded_ and one special way of _folding_ is to generate a new _foldable_ with the partial results of the _folding_ steps. This _folding_ is commonly named `scan`.
 
-Putting all together means to take the stream of evolutions and scan through it providing an initial state value as a seed (this value may come from a database or simply be our default state). And this is what a _telescope_ is: a convenient wrapper for a stream of evolutions so we can convert them into a stream of values.
+Putting all together means to take the stream of evolutions and scan through it providing an initial state value as a seed (this value may come from a database or simply be a default state). And this is what a _telescope_ is: a convenient wrapper for a stream of evolutions so we can convert them into a stream of values.
 
 The second part of this story is about how we can interact with these _telescopes_ and how we can create new ones from existing ones. That is, how can we create a world that _telescopes_ can inhabit?
 
@@ -90,6 +90,7 @@ Folder structure:
 
 ```
 _bundles/            // UMD bundles
+coverage/            // Coverage reports
 lib/                 // ES5(commonjs) + source + .d.ts
 lib-esm/             // ES5(esmodule) + source + .d.ts
 node_modules/        // You know what this is
@@ -97,6 +98,7 @@ src/                 // All Telescope source code is here
 package.json
 README.md
 tsconfig.json
+…
 ```
 
 Commands:
@@ -105,12 +107,20 @@ Commands:
 * `build:es6` builds the ES6 files (TSC)
 * `build:umd` builds the UMD files (Webpack)
 * `build` builds everything
+* `clean` deletes generated files (i.e `./_bundles`, `./lib`, `./lib-esm`.
+* `test:d` runs tests in interactive mode
 * `test` runs all tests
+* `tslint` runs the linter.
 
 ## References
 
 ### Software
 
+* **Jasmine** is a test framework for JS. [jasmine.github.io](https://jasmine.github.io/).
+* **Karma** is a test runner. [karma-runner.github.io](https://karma-runner.github.io/2.0/index.html).
+* **RxJS** is a library for Streams, Sinks and other reactive toys. [rxjs-dev.firebaseapp.com](https://rxjs-dev.firebaseapp.com/). This is the only peer dependency for Telescope, all other stuff is used only for the developers contributing to Telescope itself.
+* **Typescript** is superset of Javascript that basically adds type annotations. We use it because we love types! [typescriptlang.org](https://typescriptlang.org).
+	* **TSLint** is a linter for Typescript. [palantir.github.io/tslint](https://palantir.github.io/tslint/).
 * **Webpack** (and **Webpack-CLI**) is a bundler tool commonly used in front end projects. We use it here as a helper for running tests and to transpire UMD modules. [webpack.js.org](https://webpack.js.org/).
 	* **Awesome Typescript Loader** allows easy transpilation of Typescript code. [github@s-panferov/awesome-typescript-loader](https://github.com/s-panferov/awesome-typescript-loader).
 	* **Istanbul Instrumenter Loader** remaps coverage reports using source maps. Used only here for coverage reports. [github@webpack-contrib/istanbul-instrumenter-loader](https://github.com/webpack-contrib/istanbul-instrumenter-loader).
