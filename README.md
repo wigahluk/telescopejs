@@ -1,4 +1,5 @@
 [![npm](https://img.shields.io/npm/v/telescopejs.svg)]()
+[![travis](https://travis-ci.org/wigahluk/telescopejs.svg?branch=master)]()
 
 Telescope
 =========
