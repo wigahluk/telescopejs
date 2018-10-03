@@ -24,6 +24,10 @@ class Telescope<U> {
 }
 ```
 
+So it can be said that a _telescope_ is like a telescope (or a microscope) that focuses on fragments of a bigger universe and allows users to manipulate the whole universe through updates on the fragments.
+
+![system scope](docs_img/system_scope.png)
+
 A _lens_ is a pair of functions, one to get values from an bigger object and another one from creating big objects with a piece and a previos big object:
 
 ```typescript

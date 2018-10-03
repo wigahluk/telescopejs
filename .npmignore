@@ -23,3 +23,7 @@ coverage
 # We also don't need to distribute original TS files, 
 # only transpiled versions will get to the NPM repo.
 src
+
+# And docs also out of the distro.
+telescope.png
+docs_img
