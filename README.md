@@ -85,7 +85,9 @@ const fixBike = (bike: Bike, ride: Telescope<Bike>): void =>
     .evolve(fixTube);
 ```
 
-
+The good part about this all is that the main pieces of functionality are clearly separated and can be easily tested:
+* Evolutions, which are or should be _pure_ functions, where you update the small fragments of your state.
+* Lenses, which are or should be pairs of _pure_ functions, where you extract fragments and put back together the bigger values.
 
 ## The Story
 
