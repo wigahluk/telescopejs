@@ -5,8 +5,10 @@
 *.spec.js
 *.spec.ts
 
-# The distribution doesn't need any TSC not Webpack configuration
+# The distribution doesn't need any TSC nor other configuration files
+**/karma.conf.js
 **/tsconfig.json
+**/tslint.json
 **/webpack.config.js
 
 # The distribution doesn't need node_modules as it will 
@@ -26,4 +28,5 @@ src
 
 # And docs also out of the distro.
 telescope.png
+telescope.bib
 docs_img
