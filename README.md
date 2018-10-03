@@ -1,8 +1,8 @@
 [![npm](https://img.shields.io/npm/v/telescopejs.svg)]()
 [![travis](https://travis-ci.org/wigahluk/telescopejs.svg?branch=master)]()
 
-Telescope
-=========
+# ![telescope](telescope.png) Telescope
+
 
 Telescope is another state management library for JS ecosystem, this time based on lenses. It's an alternative to Redux for the brave as it's still a baby learning to give its first steps.
 
