@@ -41,6 +41,51 @@ The final implementation is a bit more loaded, but this is the essence.
 
 Lenses can be composed, and this is one of their great features, once you can compose blocks of any type, you have a magical way to create new ones.
 
+To have a more concrete idea of what is going on we can look into an example: 
+
+Suppose you have a bicycle and while doing some fun riding you get a flat tire. You know how to temporarily fix a tube, but you have no clue on how to get the tube out from the bike. Fortunately you have two friends, the black squirrel that knows how to get a  wheel out from a bike and an avocet that knows how to get out a tube from a wheel, they of course know how to put things together.
+
+So, how do you fix the tire? You give the bike to the black squirrel who returns you the wheel which you pass to the avocet who gives you the tube which you fix and give back to the avocet who gives you the wheel that you pass now to the black squirrel that finally returns you the whole working bike.
+
+![bike fix](docs_img/bike_fix.png)
+
+Let’s make that more clear with code:
+
+```typescript
+import {Telescope} from 'telescope';
+
+// Your super power to fix tubes: (Bike) => Bike
+import {fixTube} from './awesome_toolkit';
+
+// A couple of lenses friends of you:
+// blackSquirrel: Lens<Bike, Wheel>
+// avocet: Lens<Wheel, Tube>
+import {blackSquirrel, avocet} from './friends';
+
+import {Bike, brandNewBike} from './Bike';
+
+// You start your ride with a shining bicycle.
+const ride = Telescope().of(brandNewBike);
+
+// You subscribe to the ride in case something happens.
+ride.stream.subscribe(
+  (bike) => bike.hasFlatTire ? fixBike(bike, ride) : keepGettingFun()
+)
+
+// ... bunch of other things may happen.
+
+const fixBike = (bike: Bike, ride: Telescope<Bike>): void =>
+  ride
+    // Ask the squirrel for the wheel.
+    .magnify(blackSquirrel)
+    // Ask the avocet for the tube.
+    .magnify(avocet)
+    // Fix the tube.
+    // Telescope will pass the pieces back to your friends so you get back your bike in the stream.
+    .evolve(fixTube);
+```
+
+
 
 ## The Story
 
