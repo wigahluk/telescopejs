@@ -1,11 +1,7 @@
-import {Observable} from 'rxjs';
-import {Subject} from 'rxjs';
-import {of} from 'rxjs';
-import {merge} from 'rxjs';
-import {NEVER} from 'rxjs';
+import {merge, NEVER, Observable, of, Subject} from 'rxjs';
 import {ReplaySubject} from 'rxjs/internal/ReplaySubject';
 import {distinctUntilChanged, map, multicast, refCount, scan} from 'rxjs/operators';
-import {Evolution, evolutionWithLens} from './evolution';
+import {Evolution} from './evolution';
 import {Lens} from './lens';
 
 type Evolver<A> = (evolution: Evolution<A>) => void;
@@ -14,9 +10,9 @@ export class Telescope<U> {
 
   public static of<U>(initialState: U): Telescope<U> {
     const evolutions = new Subject();
-    const evolver: Evolver<U> = (evolution) => evolutions.next(evolution);
+    const evolver: Evolver<U> = evolution => evolutions.next(evolution);
     const stream = merge(
-      of<Evolution<U>>((u) => u), evolutions, NEVER)
+      of<Evolution<U>>(u => u), evolutions, NEVER)
       .pipe(
         scan((acc, elem: Evolution<U>) => elem(acc), initialState),
         multicast(() => new ReplaySubject(1)),
@@ -38,12 +34,13 @@ export class Telescope<U> {
   }
 
   public update(newState: U): void {
-    this.evolve((_) => newState);
+    this.evolve(_ => newState);
   }
 
   public magnify<P>(lens: Lens<U, P>): Telescope<P> {
-    return new Telescope<P>(
-      (evolve) => this.evolver(evolutionWithLens(lens, evolve)),
+    const extend = (evolution: Evolution<P>): Evolution<U> => u => lens.setter(evolution(lens.getter(u)), u);
+
+    return new Telescope<P>(evolution => this.evolver(extend(evolution)),
       this.stream.pipe(map(lens.getter), distinctUntilChanged()),
     );
   }

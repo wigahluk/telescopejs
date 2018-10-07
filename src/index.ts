@@ -1,2 +1,3 @@
 export {Lens} from './lens';
-export {Evolution, evolutionWithLens} from './evolution';
+export {Evolution} from './evolution';
+export {Telescope} from './telescope';
