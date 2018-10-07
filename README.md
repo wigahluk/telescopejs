@@ -60,7 +60,7 @@ import {fixTube} from './awesome_toolkit';
 // A couple of lenses friends of you:
 // blackSquirrel: Lens<Bike, Wheel>
 // avocet: Lens<Wheel, Tube>
-import {blackSquirrel, avocet} from './friends';
+import {blackSquirrel as tireLens, avocet as tubeLens} from './friends';
 
 import {Bike, brandNewBike} from './Bike';
 
@@ -77,9 +77,9 @@ ride.stream.subscribe(
 const fixBike = (bike: Bike, ride: Telescope<Bike>): void =>
   ride
     // Ask the squirrel for the wheel.
-    .magnify(blackSquirrel)
+    .magnify(tireLens)
     // Ask the avocet for the tube.
-    .magnify(avocet)
+    .magnify(tubeLens)
     // Fix the tube.
     // Telescope will pass the pieces back to your friends so you get back your bike in the stream.
     .evolve(fixTube);
@@ -87,7 +87,13 @@ const fixBike = (bike: Bike, ride: Telescope<Bike>): void =>
 
 The good part about this all is that the main pieces of functionality are clearly separated and can be easily tested:
 * Evolutions, which are or should be _pure_ functions, where you update the small fragments of your state.
-* Lenses, which are or should be pairs of _pure_ functions, where you extract fragments and put back together the bigger values.
+* Lenses, which are or should be pairs of _pure_ functions (`getter` and `setter`), where you extract fragments and put back together the bigger values.
+
+As an extra bonus, lenses can be composed so you can zoom in and out using them.
+
+## Lens Composition
+
+How to compose lenses and what does this means in terms of logic separation.
 
 ## The Story
 
@@ -114,10 +120,6 @@ Fortunately, streams belong to a big family of things that can be _folded_ and o
 Putting all together means to take the stream of evolutions and scan through it providing an initial state value as a seed (this value may come from a database or simply be a default state). And this is what a _telescope_ is: a convenient wrapper for a stream of evolutions so we can convert them into a stream of values.
 
 The second part of this story is about how we can interact with these _telescopes_ and how we can create new ones from existing ones. That is, how can we create a world that _telescopes_ can inhabit?
-
-## Composition
-
-How to compose lenses and what does this means in terms of logic separation.
 
 ## Telescope and React
 
