@@ -93,7 +93,198 @@ As an extra bonus, lenses can be composed so you can zoom in and out using them.
 
 ## Lens Composition
 
-How to compose lenses and what does this means in terms of logic separation.
+Telescope lenses are special machines that can transform an _evolution_ on a type of values `A` into another _evolution_ on type of values `B`. That is, they are kind of a function from `Evolution<A>` to `Evolution<B>`. Let’s write them as:
+
+```
+Lens<A,B> kinda Evolution<A> ~> Evolution<B>
+```
+
+And as functions they can be composed as long as the types matches):
+
+```
+Evolution<A> ~> Evolution<B> ~> Evolution<C>
+// Becomes:
+Evolution<A> ~> Evolution<C>
+```
+
+As in regular typescript functions, there is no special operator for composition, but Telescope lenses are equipped with the method `compose` which does what we expect. In our previous example we can now do a small refactor:
+
+```typescript
+// …
+const fixBike = (bike: Bike, ride: Telescope<Bike>): void =>
+  ride
+    // Ask the squirrel and the avocet for the tube.
+    .magnify(tireLens.compose(tubeLens))
+    // Fix the tube.
+    // Telescope will pass the pieces back to your friends so you get back your bike in the stream.
+    .evolve(fixTube);
+```
+
+Having composition is actually a big thing which allows for: reducing testing scenarios as only small lenses need to be tested, composite lenses are as good as its elements; and decoupling responsibilities as lenses can live in the code closer to the data structures they handle.
+
+## Using Telescope
+
+We’ll see how to use Telescope in a simplified TODO application. Let’s start with a general domain definition agnostic of any framework:
+
+```typescript
+// A type for the global state.
+class TodosState {
+  readonly description: string;
+  readonly todos: Todo[];
+
+  static empty() {
+    return new TodosState('', []);
+  }
+
+  constructor(description: string, todos: Todo[]) {…}
+
+  copy(description: string, todos: Todo[]): TodosState {…}
+  addTodo(description: string): TodosState {…}
+  removeTodoAt(index: number): TodosState {…}
+  setTodoAt(index: number, todo: Todo): TodosState {…}
+}
+
+class Todo {
+  readonly description: string;
+  readonly done: boolean;
+
+  constructor(description: string = '', done: boolean = false) {…}
+
+  copy(description: string, done: boolean): Todo {…}
+}
+```
+
+With actions or side effects:
+
+```typescript
+// Given a Telescope on a Todo, toggle it.
+const toggle = (telescope: Telescope<Todo>):void =>
+  telescope.evolve(todo =>
+	  todo.copy(todo.description, !todo.done));
+
+const addTodo = (telescope: Telescope<TodosState>): void =>
+  telescope.evolve((state) =>
+    state.addTodo(state.description).copy('', undefined));
+
+const removeTodoAt = (telescope: Telescope<TodosState>,index: number):void =>
+  telescope.evolve((state) =>
+    state.removeTodoAt(index));
+
+const setDescription = (telescope: Telescope<TodosState>, description: string): void =>
+  telescope.evolve((state) =>
+    state.copy(description, undefined));
+```
+
+And one Lens:
+
+```typescript
+const todoAtLens = (index: number) =>
+  new Lens<TodosState, Todo>(
+    (state) => state.todos[index],
+    (todo, state) => state.setTodoAt(index, todo)
+  );
+```
+
+
+
+### React
+
+This example shows how to integrate Telescope in a React application using the _Redux style_ which is to have a global state. The state is represented and maintained by a single stream inside a Telescope. We’ll use lenses and magnification only to keep a handle for our side effects.
+
+As a bootstrap for the application we need something like:
+
+```typescript
+const telescope = Telescope.of<TodosState>(TodosState.empty());
+
+telescope.stream.subscribe(
+  (state) => {
+    ReactDOM.render(
+      <App telescope={telescope} state={state}/>,
+      document.getElementById("app")
+    );
+  }
+);
+```
+
+From then on, we don’t even need to subscribe to the stream, react will handle it for us.
+
+```typescript
+interface IProps {
+  telescope: Telescope<TodosState>,
+  state: TodosState
+}
+
+export const App = (props: IProps) =>
+  <div>
+    <TodoList telescope={props.telescope} state={props.state}/>
+  </div>;
+```
+
+In React it will be easier to do state projections directly against the `props` of the components, but you can for sure use the getters.
+
+```typescript
+interface IProps {
+  telescope: Telescope<TodosState>,
+  state: TodosState
+}
+
+export const TodoList = (props: IProps) =>
+  <div>
+    <div>
+      <label>
+        What do you need to do?
+        <input id="description"
+           type="text"
+           value={props.state.description}
+           onChange={event => {
+               setDescription(props.telescope, event.target.value);
+           }}/>
+      </label>
+        <button onClick={() => addTodo(props.telescope)}>Add</button>
+    </div>
+    <TodosRawList todos={props.state.todos} telescope={props.telescope}/>
+  </div>;
+
+const TodosRawList = (props: { todos: Todo[], telescope: Telescope<TodosState> }) => props.todos.length === 0 ?
+  <p>Nothing to do! Add items above.</p> :
+  <div>
+    <ul>
+      {
+        props.todos.map((todo, index) =>
+          <TodoItem
+            key={index}
+            todo={todo}
+            telescope={props.telescope.magnify(todoAtLens(index))}
+            onDelete={() => removeTodoAt(props.telescope, index)}/>)
+      }
+    </ul>
+  </div>;
+
+```
+
+And finally:
+
+```typescript
+interface IProps {
+  telescope: Telescope<Todo>
+  todo: Todo
+  key: number
+  onDelete: () => void
+}
+
+export const TodoItem = (props: IProps) =>
+  <li>
+    <input type="checkbox" checked={props.todo.done} onChange={(_) => toggle(props.telescope)}/>
+    <span>{props.todo.description}</span>
+    <button onClick={(_) => props.onDelete()}>Delete</button>
+  </li>;
+```
+
+Although this example is pretty simple and not even includes Lens composition, it shows the basics on how to integrate Telescope with React.
+
+### Angular
+
+TODO: complete this section.
 
 ## The Story
 
@@ -120,14 +311,6 @@ Fortunately, streams belong to a big family of things that can be _folded_ and o
 Putting all together means to take the stream of evolutions and scan through it providing an initial state value as a seed (this value may come from a database or simply be a default state). And this is what a _telescope_ is: a convenient wrapper for a stream of evolutions so we can convert them into a stream of values.
 
 The second part of this story is about how we can interact with these _telescopes_ and how we can create new ones from existing ones. That is, how can we create a world that _telescopes_ can inhabit?
-
-## Telescope and React
-
-Explain how to use Telescope, or at least how we think it can be used.
-
-## Telescope and Angular
-
-Same as above but for Angular.
 
 ## Lenses
 
