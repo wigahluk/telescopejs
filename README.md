@@ -93,7 +93,7 @@ The good part about this all is that the main pieces of functionality are clearl
 
 This story goes more or less as you would expect: How to handle changes on state in an application where many actors need to react to those changes and many actors are producing these changes?
 
-The idea behind Telescope is that each change can be seen as a delta on the previous state, the problem is that unless this state is some kind of number-like value, it is quite difficult to represent what a _delta_ means in its context. The key is that we don’t really need to know what this _delta_ is nor how to _add_ it to the previous state value, we can trust Telescope users to know what to do and encapsulate the _delta_ and the _adding_ process in a function, a function that will take a state value and return a new one:
+The idea behind Telescope is that each change can be seen as a delta on the previous state, one challenge is that unless this state is some kind of number-like value, it is quite difficult to represent what a _delta_ means in its context. The key is that we don’t really need to know what this _delta_ is nor how to _add_ it to the previous state value, we can trust Telescope users to know what to do and encapsulate the _delta_ and the _adding_ process in a function, a function that will take a state value and return a new one:
 
 ```typescript
 (s: State) => State
@@ -131,7 +131,7 @@ Same as above but for Angular.
 
 Lenses were first described and implemented by Edward Kmett for Haskell ([github@ekmett/lens](https://github.com/ekmett/lens)) and since then have been getting more and more attention as a powerful abstraction for composable accessors.
 
-Lenses are one of many other optics and while we only use lenses in Telescope, we do are planning to add Prisms and other toys to the box.
+Lenses are one of many other optics and while we only use lenses in Telescope, we are planning to add Prisms and other toys to the box.
 
 ## Development
 
