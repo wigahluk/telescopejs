@@ -245,7 +245,8 @@ export const TodoList = (props: IProps) =>
     <TodosRawList todos={props.state.todos} telescope={props.telescope}/>
   </div>;
 
-const TodosRawList = (props: { todos: Todo[], telescope: Telescope<TodosState> }) => props.todos.length === 0 ?
+const TodosRawList = (props: { todos: Todo[], telescope: Telescope<TodosState> }) =>
+  props.todos.length === 0 ?
   <p>Nothing to do! Add items above.</p> :
   <div>
     <ul>
