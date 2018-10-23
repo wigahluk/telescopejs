@@ -2,6 +2,7 @@
   "extends": "tslint:recommended",
   "rules": {
     "quotemark": [true, "single"],
-    "arrow-parens": [true, "ban-single-arg-parens"]
+    "arrow-parens": [true, "ban-single-arg-parens"],
+    "interface-name": [false]
   }
 }

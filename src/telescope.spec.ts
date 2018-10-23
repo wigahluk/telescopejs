@@ -1,11 +1,12 @@
 import {skip} from 'rxjs/operators';
 import {Lens} from './lens';
 import {Telescope} from './telescope';
+import {Pair} from "./par";
 
 describe('Telescope', () => {
   it('brand new should emit initial value', done => {
     Telescope.of(1).stream.subscribe(n => {
-      expect(n).toBe(1);
+      expect(n.first).toBe(1);
       done();
     });
   });
@@ -13,7 +14,7 @@ describe('Telescope', () => {
   it('should update', done => {
     const t = Telescope.of(1);
     t.stream.pipe(skip(1)).subscribe(n => {
-      expect(n).toBe(2);
+      expect(n.second).toBe(2);
       done();
     });
     t.update(2);
@@ -26,10 +27,10 @@ describe('Telescope', () => {
     const tUniverse = Telescope.of(2);
     const tPart = tUniverse.magnify(lensTwo);
     tPart.stream.pipe(skip(1)).subscribe(next => {
-      expect(next).toBe(2);
+      expect(next.first).toBe(2);
       done();
     });
-    tUniverse.update(4);
+    tUniverse.evolve(_ => new Pair(4, 4));
   });
 
   it('setter should magnify when given a lens', done => {
@@ -39,7 +40,7 @@ describe('Telescope', () => {
     const tUniverse = Telescope.of(2);
     const tPart = tUniverse.magnify(lensTwo);
     tUniverse.stream.pipe(skip(1)).subscribe(next => {
-      expect(next).toBe(6);
+      expect(next.second).toBe(6);
       done();
     });
     tPart.update(3);
