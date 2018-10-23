@@ -1,7 +1,7 @@
 import {skip} from 'rxjs/operators';
 import {Lens} from './lens';
+import {Pair} from './par';
 import {Telescope} from './telescope';
-import {Pair} from "./par";
 
 describe('Telescope', () => {
   it('brand new should emit initial value', done => {
