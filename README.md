@@ -285,7 +285,112 @@ Although this example is pretty simple and not even includes Lens composition, i
 
 ### Angular
 
-TODO: complete this section.
+Just as with React, but assuming Angular instead :)
+
+As a bootstrap for the application we need something like:
+
+```typescript
+@Component({ ... changeDetection: ChangeDetectionStrategy.OnPush })
+export class AppComponent {
+  // Look Ma! no (explicit) subscriptions!
+  readonly telescope = Telescope.of<TodosState>(TodosState.empty());
+}
+```
+
+Here is the template for the main component, it can be optimized, but still you can see the simplicity:
+
+```html
+<todo-list [telescope]="telescope" [state]="telescope.stream | async">
+</todo-list>
+```
+
+From then on, we don’t even need to subscribe to the stream, using the async pipe, Angular will handle it for us.
+
+To render the Todos in a hierarchical mode we rely in the following component:
+
+```typescript
+export class TodoListComponent {
+  newTodo: string = '';
+
+  @Input()
+  telescope: Telescope<TodosState>;
+
+  @Input()
+  state: TodosState;
+
+  constructor() {
+  }
+
+  add(): void {
+    setDescription(this.telescope, this.newTodo);
+    addTodo(this.telescope);
+    this.newTodo = '';
+  }
+
+  telescopeAt(index: number): Telescope<Todo> {
+    return this.telescope.magnify(todoAtLens(index));
+  }
+
+  removeTodoAt(index: number): void {
+    removeTodoAt(this.telescope, index);
+  }
+}
+```
+
+Note that we need to wrap the actions in instance methods since the controllers in angular serve as a namespace and we
+cannot refer top level functions from the template.
+
+```html
+<div>
+  <label for="description">What do you need to do?</label>
+  <input type="text" id="description" [(ngModel)]="newTodo">
+  <button (click)="add()">Add</button>
+</div>
+
+<ul>
+  <todo *ngFor="let todo of state.todos; let i = index"
+        [todo]="todo"
+        (deleted)="removeTodoAt(i);"
+        [telescope]="telescopeAt(i)">
+  </todo>
+</ul>
+```
+And finally:
+
+```typescript
+export class TodoComponent {
+  @Output()
+  deleted = new EventEmitter<void>();
+
+  @Input()
+  todo: Todo;
+
+  @Input()
+  telescope: Telescope<Todo>;
+
+  remove(): void {
+    this.deleted.next();
+  }
+
+  toggle(): void {
+    toggle(this.telescope);
+  }
+}
+```
+
+And its template:
+
+```html
+<li>
+  <input type="checkbox" [checked]="todo.done" (change)="toggle();">
+
+  <span [class.done]="todo.done">{{todo.description}}</span>
+  <button (click)="remove()">Delete</button>
+</li>
+```
+
+As you can see, the Angular version is a bit more verbose but just like in the React counterpart, the controllers are
+very simple in terms of logic, which results in components easier to test and  the same is true for the business logic.
 
 ## The Story
 
