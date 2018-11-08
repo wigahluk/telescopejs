@@ -1,8 +1,9 @@
 {
   "name": "telescopejs",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Another state managemnt library for JS echosystem, this time based on lenses and optics.",
-  "main": "lib/index.js",
+  "main": "./lib/index.js",
+  "typings": "./lib/index.d.ts",
   "scripts": {
     "build:common": "tsc",
     "build:es6": "tsc -m es6 --outDir lib-esm",
