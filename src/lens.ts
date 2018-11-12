@@ -1,10 +1,5 @@
 export class Lens<U, P> {
-  public readonly getter: (u: U) => P;
-  public readonly setter: (p: P, u: U) => U;
-
-  constructor(getter: (u: U) => P, setter: (p: P, u: U) => U) {
-    this.getter = getter;
-    this.setter = setter;
+  constructor(public readonly getter: (u: U) => P, public readonly setter: (p: P, u: U) => U) {
   }
 
   public compose<Q>(lens: Lens<P, Q>): Lens<U, Q> {
