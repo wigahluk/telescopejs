@@ -22,10 +22,7 @@ export class Telescope<U> {
 
   public readonly stream: Observable<U>;
 
-  private readonly evolver: Evolver<U>;
-
-  constructor(evolver: Evolver<U>, stream: Observable<U>) {
-    this.evolver = evolver;
+  constructor(private readonly evolver: Evolver<U>, stream: Observable<U>) {
     this.stream = stream.pipe(distinctUntilChanged());
   }
 
