@@ -6,6 +6,12 @@ import {Lens} from './lens';
 
 type Evolver<A> = (evolution: Evolution<A>) => void;
 
+/**
+ * A stateful container that exposing a stream of state values that users can subscribe to.
+ *
+ * A Telescope is an endo-profunctor for a type U which means it accepts new U values and
+ * produces U values on the associated stream.
+ */
 export class Telescope<U> {
 
   public static of<U>(initialState: U): Telescope<U> {
@@ -24,6 +30,24 @@ export class Telescope<U> {
 
   constructor(private readonly evolver: Evolver<U>, stream: Observable<U>) {
     this.stream = stream.pipe(distinctUntilChanged());
+  }
+
+  public dimap<P>(to: (u: U) => P, from: (p: P) => U): Telescope<P> {
+    return this.magnify(new Lens(to, (p: P, u: U) => from(p)));
+  }
+
+  public uplift<C>(value: C): Telescope<{first: U; second: C; }> {
+    let lastC = value;
+    const to = (u: U) => ({first: u, second: lastC });
+    const constrain = (evolution: Evolution<{first: U; second: C; }>): Evolution<U> => u => {
+      const newPair = evolution({first: u, second: lastC});
+      lastC = newPair.second;
+      return newPair.first;
+    };
+
+    return new Telescope<{first: U; second: C; }>(evolution => this.evolver(constrain(evolution)),
+      this.stream.pipe(map(to), distinctUntilChanged()),
+    );
   }
 
   public evolve(evolution: Evolution<U>): void {
