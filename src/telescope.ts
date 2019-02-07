@@ -6,8 +6,6 @@ import {Lens} from './lens';
 
 type Evolver<A> = (evolution: Evolution<A>) => void;
 
-interface Pair<A, B> {first: A; second: B; }
-
 /**
  * A stateful container that exposing a stream of state values that users can subscribe to.
  *
@@ -35,22 +33,19 @@ export class Telescope<U> {
   }
 
   public dimap<P>(to: (u: U) => P, from: (p: P) => U): Telescope<P> {
-    const extend = (evolution: Evolution<P>): Evolution<U> => u => from(evolution(to(u)));
-    return new Telescope<P>(evolution => this.evolver(extend(evolution)),
-      this.stream.pipe(map(to), distinctUntilChanged()),
-    );
+    return this.magnify(new Lens(to, (p: P, u: U) => from(p)));
   }
 
   public uplift<C>(value: C): Telescope<{first: U; second: C; }> {
     let lastC = value;
     const to = (u: U) => ({first: u, second: lastC });
-    const extend = (evolution: Evolution<{first: U; second: C; }>): Evolution<U> => u => {
+    const constrain = (evolution: Evolution<{first: U; second: C; }>): Evolution<U> => u => {
       const newPair = evolution({first: u, second: lastC});
       lastC = newPair.second;
       return newPair.first;
     };
 
-    return new Telescope<{first: U; second: C; }>(evolution => this.evolver(extend(evolution)),
+    return new Telescope<{first: U; second: C; }>(evolution => this.evolver(constrain(evolution)),
       this.stream.pipe(map(to), distinctUntilChanged()),
     );
   }
