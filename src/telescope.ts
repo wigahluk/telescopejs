@@ -1,5 +1,4 @@
-import {merge, NEVER, Observable, of, Subject} from 'rxjs';
-import {ReplaySubject} from 'rxjs/internal/ReplaySubject';
+import {merge, NEVER, Observable, of, ReplaySubject, Subject} from 'rxjs';
 import {distinctUntilChanged, map, multicast, refCount, scan} from 'rxjs/operators';
 import {Evolution} from './evolution';
 import {Lens} from './lens';
@@ -20,9 +19,10 @@ export class Telescope<U> {
     const stream = merge(
       of<Evolution<U>>(u => u), evolutions, NEVER)
       .pipe(
-        scan((acc, elem: Evolution<U>) => elem(acc), initialState),
-        multicast(() => new ReplaySubject(1)),
-        refCount());
+          scan((acc, elem: Evolution<U>) => elem(acc), initialState),
+          // LOCAL MOD: compatible with https://github.com/ReactiveX/rxjs/pull/4816
+          multicast(() => new ReplaySubject<U>(1)),
+          refCount());
     return new Telescope<U>(evolver, stream);
   }
 
