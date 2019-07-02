@@ -1,6 +1,6 @@
 {
   "name": "telescopejs",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Another state managemnt library for JS echosystem, this time based on lenses and optics.",
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
@@ -35,22 +35,22 @@
     "rxjs": ">= 6.0.0"
   },
   "devDependencies": {
-    "@types/jasmine": "2.8.8",
+    "@types/jasmine": "3.3.13",
     "awesome-typescript-loader": "5.2.1",
     "istanbul-instrumenter-loader": "3.0.1",
-    "jasmine": "3.2.0",
-    "karma": "3.0.0",
+    "jasmine": "3.4.0",
+    "karma": "4.1.0",
     "karma-chrome-launcher": "2.2.0",
     "karma-coverage": "1.1.2",
-    "karma-jasmine": "1.1.2",
+    "karma-jasmine": "2.0.1",
     "karma-remap-coverage": "0.1.5",
     "karma-sourcemap-loader": "0.3.7",
-    "karma-webpack": "3.0.5",
-    "rxjs": "6.3.3",
+    "karma-webpack": "4.0.2",
+    "rxjs": "6.5.2",
     "source-map-loader": "0.2.4",
-    "tslint": "5.11.0",
-    "typescript": "3.1.1",
-    "webpack": "4.20.2",
-    "webpack-cli": "3.1.2"
+    "tslint": "5.18.0",
+    "typescript": "3.5.2",
+    "webpack": "4.35.2",
+    "webpack-cli": "3.3.5"
   }
 }
