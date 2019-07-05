@@ -394,9 +394,9 @@ very simple in terms of logic, which results in components easier to test and  t
 
 ## The Story
 
-This story goes more or less as you would expect: How to handle changes on state in an application where many actors need to react to those changes and many actors are producing these changes?
+This story goes more or less as you would expect: How to handle changes on state in an application where many actors need to react to those changes and many actors are producing those changes?
 
-The idea behind Telescope is that each change can be seen as a delta on the previous state, one challenge is that unless this state is some kind of number-like value, it is quite difficult to represent what a _delta_ means in its context. The key is that we don’t really need to know what this _delta_ is nor how to _add_ it to the previous state value, we can trust Telescope users to know what to do and encapsulate the _delta_ and the _adding_ process in a function, a function that will take a state value and return a new one:
+The idea behind Telescope is that each change can be seen as a delta to the previous state, and the first challenge we face is that unless the state is some kind of _number-like_ value, it is not clear what a _delta_ is in this context. The key is that we don’t really need to know what this _delta_ is nor how to _add_ it to the previous state value, we can trust Telescope users to know what to do and encapsulate the _delta_ and the _adding_ process in a function, a function that will take a state value and return a new one:
 
 ```typescript
 (s: State) => State
@@ -404,7 +404,7 @@ The idea behind Telescope is that each change can be seen as a delta on the prev
 
 We call these type of functions `Evolutions` but they have other names too, in Mathematics they are commonly known as _endomorphisms_.
 
-There is a caveat of course. As there are many values for this _deltas_ and maybe different _adding_ processes depending on the particular interaction happening in the application, there will be potentially many evolutions. In Telescope this is OK, evolutions are treated as regular values that encapsulate a _delta_ and an _adding_ process.
+There is a caveat of course. As there are many values for this _deltas_ and maybe different _adding_ processes depending on the particular interaction happening in the application, there will be potentially many evolutions. In Telescope this is OK, evolutions are treated as regular values.
 
 The Telescope idea comes from answering this question: What do we do with all these evolutions to get back our states?
 
@@ -418,9 +418,13 @@ Putting all together means to take the stream of evolutions and scan through it 
 
 The second part of this story is about how we can interact with these _telescopes_ and how we can create new ones from existing ones. That is, how can we create a world that _telescopes_ can inhabit?
 
+Telescopes can be seen as consumers of values of a given type, let’s say `U` and produce values of the same type `U` through a stream. In order to convert a Telescope of `U`’s to a Telescope of `P`’s, we’ll need to provide two functions, one from `U` to `P` and another one from `P` to `U`.
+
+This is all fine as long as this functions are inverses one to the other, but in many situations we want to convert the original `U` type into a _smaller_ `P`, that is, `P` has lees information than `U`. We do this through Lenses, a special attraction originally intended as a data accessor for nested structures. When we use a Lens to transform a Telescope, we say we do a _magnification_, that is, we use the given Lens to look only into the details that will be represented in the type `P`.
+
 ## Lenses
 
-Lenses were first described and implemented by Edward Kmett for Haskell ([github@ekmett/lens](https://github.com/ekmett/lens)) and since then have been getting more and more attention as a powerful abstraction for composable accessors.
+Lenses most common representation was described and implemented by Edward Kmett for Haskell ([github@ekmett/lens](https://github.com/ekmett/lens)) and since then have been getting more and more attention as a powerful abstraction for composable accessors.
 
 Lenses are one of many other optics and while we only use lenses in Telescope, we are planning to add Prisms and other toys to the box.
 
