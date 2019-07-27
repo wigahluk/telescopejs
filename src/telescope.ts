@@ -14,19 +14,10 @@ type Evolver<A> = (evolution: Evolution<A>) => void;
 export class Telescope<U> {
 
   /**
-   * A stream of the changes in the values of this Telescope.
-   */
-  public readonly stream: Observable<U>;
-
-  constructor(private readonly evolver: Evolver<U>, stream: Observable<U>) {
-    this.stream = stream.pipe(distinctUntilChanged());
-  }
-
-  /**
    * Creates a new instance of Telescope containing the given initial value.
    * @param initialState
    */
-  public static of<U>(initialState: U): Telescope<U> {
+  static of<U>(initialState: U): Telescope<U> {
     const evolutions = new Subject();
     const evolver: Evolver<U> = evolution => evolutions.next(evolution);
     const stream = merge(
@@ -40,11 +31,20 @@ export class Telescope<U> {
   }
 
   /**
+   * A stream of the changes in the values of this Telescope.
+   */
+  readonly stream: Observable<U>;
+
+  constructor(private readonly evolver: Evolver<U>, stream: Observable<U>) {
+    this.stream = stream.pipe(distinctUntilChanged());
+  }
+
+  /**
    * Converts this Telescope to a new one when given translations "from" a and "to" the new type.
    * @param to: (u: U) => P
    * @param from: (p: P) => U
    */
-  public dimap<P>(to: (u: U) => P, from: (p: P) => U): Telescope<P> {
+  dimap<P>(to: (u: U) => P, from: (p: P) => U): Telescope<P> {
     return this.magnify(new Lens(to, (p: P, u: U) => from(p)));
   }
 
@@ -56,7 +56,7 @@ export class Telescope<U> {
    * first entry is not updated, the source Telescope will not emit new changes.
    * @param value
    */
-  public uplift<C>(value: C): Telescope<{ first: U; second: C; }> {
+  uplift<C>(value: C): Telescope<{ first: U; second: C; }> {
     let lastC = value;
     const to = (u: U) => ({first: u, second: lastC});
     const constrain = (evolution: Evolution<{ first: U; second: C; }>): Evolution<U> => u => {
@@ -75,7 +75,7 @@ export class Telescope<U> {
    * applied. The resulting new state will be a new event in the associated stream.
    * @param evolution
    */
-  public evolve(evolution: Evolution<U>): void {
+  evolve(evolution: Evolution<U>): void {
     this.evolver(evolution);
   }
 
@@ -83,7 +83,7 @@ export class Telescope<U> {
    * Updates the state on this Telescope to the given value causing a new event on the associated stream.
    * @param newState
    */
-  public update(newState: U): void {
+  update(newState: U): void {
     this.evolve(_ => newState);
   }
 
@@ -92,7 +92,7 @@ export class Telescope<U> {
    * this Telescope. The projection is controlled by a Lens wrapping the setter and getter functions.
    * @param lens
    */
-  public magnify<P>(lens: Lens<U, P>): Telescope<P> {
+  magnify<P>(lens: Lens<U, P>): Telescope<P> {
     const extend = (evolution: Evolution<P>): Evolution<U> => u => lens.setter(evolution(lens.getter(u)), u);
 
     return new Telescope<P>(evolution => this.evolver(extend(evolution)),
