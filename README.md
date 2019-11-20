@@ -289,18 +289,40 @@ Just as with React, but assuming Angular instead :)
 
 As a bootstrap for the application we need something like:
 
+```typescript 
+@Injectable()
+export class TodoService {}
+
+@NgModule({
+  declarations: [
+    AppComponent,
+    TodoListComponent
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    FormsModule
+  ],
+  providers: [
+    {provide: TodoService, useValue: Telescope.of<any>(TodosState.empty()) }
+  ],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+```
+
 ```typescript
 @Component({ ... changeDetection: ChangeDetectionStrategy.OnPush })
 export class AppComponent {
   // Look Ma! no (explicit) subscriptions!
-  readonly telescope = Telescope.of<TodosState>(TodosState.empty());
+  constructor(private todoservice: TodoService) {}
 }
 ```
 
 Here is the template for the main component, it can be optimized, but still you can see the simplicity:
 
 ```html
-<todo-list [telescope]="telescope" [state]="telescope.stream | async">
+<todo-list [telescope]="todoservice" [state]="todoservice.stream | async">
 </todo-list>
 ```
 
