@@ -287,43 +287,138 @@ Although this example is pretty simple and not even includes Lens composition, i
 
 Just as with React, but assuming Angular instead :)
 
+The code for below example - can be found here <https://github.com/georgebatalinski/telescope_todo>
+
 As a bootstrap for the application we need something like:
 
 ```typescript 
-@Injectable()
-export class TodoService {}
-
 @NgModule({
   declarations: [
     AppComponent,
     TodoListComponent
   ],
   imports: [
-    BrowserModule,
-    AppRoutingModule,
-    FormsModule
+    ...
   ],
   providers: [
-    {provide: TodoService, useValue: Telescope.of<any>(TodosState.empty()) }
+    { provide: 'StreamContract', useFactory: ()=> Telescope.of( AppState.empty() ), deps: [] }
   ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
 ```
 
+We define our global STATE (however, the more ultimate approach would be to have local state)
+local state = would mean each Service, would have a Telescope instance of their own, resulting in us not 
+having to setup and/or maintain <AppState> 
+Note: If choose to maintain <AppState> as in this example, we would be adding more members to the 
+class, which would mean boilerplate. 
+
+
+```typescript
+interface STATE {
+    todos: TodoState;
+    people: PersonsState;
+}
+
+
+export class AppState implements STATE {
+
+    static empty() {
+        return new AppState( 
+            new TodoState(), 
+            new PersonsState() 
+            );
+    }
+    todos: TodoState;
+    people: PersonsState;
+    
+    constructor(todos: TodoState, people: PersonsState ) {
+        this.todos = todos;
+        this.people = people;
+    }
+}
+
+
+export class TodoState {
+    todos: Array<Todo>;
+
+    constructor( todos: Array<Todo> = [] ) {
+        this.todos = todos;
+    }
+
+    add(title: string): TodoState {
+        let todos = [ {title } ];
+        return new TodoState( [...this.todos, ...todos] );
+    }
+}
+
+export class Todo {
+    constructor( public title: string = ''){}
+}
+
+export class PersonsState {
+    people: Array<Person>;
+}
+
+
+class Person {
+    name: string;
+}
+```
+
+Setup a Service - that will use `StreamContract`
+
+```typescript 
+export class TodoService {
+  state$: Telescope<TodoState>;
+  loaded: boolean = false;
+  constructor(@Inject('StreamContract') private streamContract: Telescope<AppState>) { 
+    /*
+      this will allow us to slice the GLOBAL state 
+      so we can only work with TODOs 
+      since in the AppState  has people
+    */
+    this.state$ = this.streamContract.magnify( todosLens() );  
+  }
+
+  load() {
+    if(!this.loaded) {
+      //httpCall - on success - we get these from server 
+      //[new Todo('go to aroma'),new Todo('fix tires')]
+      let fromServer = [new Todo('go to aroma'),new Todo('fix tires')];
+      loadTodos(this.streamContract, fromServer);
+      this.loaded = true;
+    }
+  }
+
+  add( title: string ){
+    //httpCall - on success - we will call addTodo
+    addTodo(this.streamContract, title);
+  }
+
+}
+```
+
 ```typescript
 @Component({ ... changeDetection: ChangeDetectionStrategy.OnPush })
-export class AppComponent {
-  // Look Ma! no (explicit) subscriptions!
-  constructor(private todoservice: TodoService) {}
+export class AppComponent implements OnInit {
+  title = 'telescope-todo';
+  todos: any;
+  constructor( private todoService : TodoService ) {}
+  ngOnInit() {
+    this.todos = this.todoService.state$.stream;
+    this.todoService.load();
+  }
 }
 ```
 
 Here is the template for the main component, it can be optimized, but still you can see the simplicity:
 
 ```html
-<todo-list [telescope]="todoservice" [state]="todoservice.stream | async">
-</todo-list>
+<todos-list
+  [list]="todos | async" [service]="todoService"
+></todos-list>
 ```
 
 From then on, we don’t even need to subscribe to the stream, using the async pipe, Angular will handle it for us.
@@ -331,31 +426,22 @@ From then on, we don’t even need to subscribe to the stream, using the async p
 To render the Todos in a hierarchical mode we rely in the following component:
 
 ```typescript
-export class TodoListComponent {
+export class TodosListComponent implements OnInit {
+
+  @Input() list: Array<Todo>;
+  @Input() service: TodoService; //this service could be injected OR could be passed down to component
   newTodo: string = '';
 
-  @Input()
-  telescope: Telescope<TodosState>;
-
-  @Input()
-  state: TodosState;
-
-  constructor() {
+  ngOnInit() {
   }
 
-  add(): void {
-    setDescription(this.telescope, this.newTodo);
-    addTodo(this.telescope);
-    this.newTodo = '';
+  add() {
+    this.service.add(this.newTodo);
   }
+  removeTodoAt(i: number) {...}
+  telescopeAt(i: number) {...}
+  toggle(i: number) {...}
 
-  telescopeAt(index: number): Telescope<Todo> {
-    return this.telescope.magnify(todoAtLens(index));
-  }
-
-  removeTodoAt(index: number): void {
-    removeTodoAt(this.telescope, index);
-  }
 }
 ```
 
@@ -373,7 +459,7 @@ cannot refer top level functions from the template.
   <todo *ngFor="let todo of state.todos; let i = index"
         [todo]="todo"
         (deleted)="removeTodoAt(i);"
-        [telescope]="telescopeAt(i)">
+        [toggle]="toggle(i)">
   </todo>
 </ul>
 ```
@@ -387,15 +473,12 @@ export class TodoComponent {
   @Input()
   todo: Todo;
 
-  @Input()
-  telescope: Telescope<Todo>;
-
   remove(): void {
     this.deleted.next();
   }
 
   toggle(): void {
-    toggle(this.telescope);
+    this.toggle.next();
   }
 }
 ```
@@ -410,6 +493,92 @@ And its template:
   <button (click)="remove()">Delete</button>
 </li>
 ```
+
+
+Testing 
+
+Services - we can just provide telescope - and we check the results inside the streams 
+```typescript
+
+describe('TodoService', () => {
+  beforeEach(() => TestBed.configureTestingModule({
+    providers: [
+      { provide: 'StreamContract', useFactory: ()=> Telescope.of( AppState.empty() ), deps: [] }
+    ]
+    }));
+
+  it('should get a telescope', () => {
+    const service: TodoService = TestBed.get(TodoService);
+    service.state$.stream.subscribe(
+      x => expect(x.todos.length).toEqual(0)
+    );
+  });
+
+    it('should load new todos', () => {
+    const service: TodoService = TestBed.get(TodoService);
+    let i = 0;
+    service.state$.stream.subscribe(
+      x => {
+        expect(x.todos.length).toEqual(i * 2);
+        i++;
+      }
+    );
+    service.load();
+  });
+
+  it('should add new todos', () => {
+    const service: TodoService = TestBed.get(TodoService);
+    let i = 0;
+    service.state$.stream.subscribe(
+      x => {
+        expect(x.todos.length).toEqual(i);
+        i++;
+      }
+    );
+    service.add('order sugar');
+  });
+});
+
+
+```
+
+
+Operations can be tested by also supplying the Telescope - since the inner function 
+relies on outside scope.
+
+```typescript 
+export const addTodo = (telescope: Telescope<AppState>, title: string): void =>
+telescope.evolve(
+    (state) => {
+        state.todos = state.todos.add(title);
+        return state;
+    }
+);
+
+describe('Todo Operations', () => {
+  beforeEach(() => TestBed.configureTestingModule({
+      providers: [
+        { provide: 'StreamContract', useFactory: ()=> Telescope.of( AppState.empty() ), deps: [] }
+      ]
+  }));
+
+  it('should be pure to ADD', inject(['StreamContract'], (telescope: Telescope<AppState>) => {
+    let magnified:Telescope<TodoState> = telescope.magnify( todosLens() );
+    let i = 0;
+    magnified.stream.subscribe(
+        x => {
+            expect(x.todos.length).toEqual(i);
+            i++;
+        }
+    );
+    addTodo(telescope, 'get sugar');
+  }));
+
+});
+
+```
+
+
 
 As you can see, the Angular version is a bit more verbose but just like in the React counterpart, the controllers are
 very simple in terms of logic, which results in components easier to test and  the same is true for the business logic.
