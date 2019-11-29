@@ -205,8 +205,14 @@ const constellationsToPair: (cs: Constellations) => ({first: cs.stars, seccond: 
 const constellations: Telescope<Constellations> = universe
    .magnify(starLens)
    .uplift(initialFigures)
-   .dimap(pairToConstellations);
+   .dimap(pairToConstellations, constellationsToPair);
 ```
+
+In the _uplifted_ Telescope `constellations`, if you update the figures property, for example adding an extra element 
+or removing one, the stream exposed in `constellations` will emit, but the stream from the original Telescope 
+`universe` will not. The `figures` change stays in its scoped Telescope. On the other hand, if the update is on the 
+`stars` property, both Telescopes will emit.
+
 
 ## Using Telescope
 
