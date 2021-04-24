@@ -4,11 +4,15 @@
 # ![telescope](telescope.png) Telescope
 
 
-Telescope is another state management library for JS ecosystem, this time based on lenses. It's an alternative to Redux for the brave as it's still a baby learning to give its first steps.
+Telescope is another state management library for JS ecosystem, this time based on lenses. It's an alternative to
+Redux for the brave as it's still a baby learning to give its first steps.
 
 ## The Basics
 
-A _telescope_ is a special object that handle changes on a complex state by providing handlers to smaller pieces of the big structure, each of these handlers is a new _telescope_ and they are created by _magnifying_ up a special part of the whole thing. As with regular magnification, you need _lenses_ to do this, so, we provide the _lens_ and the _telescope_ focus on what is needed.
+A _telescope_ is a special object that handle changes on a complex state by providing handlers to smaller pieces of
+the big structure, each of these handlers is a new _telescope_ and they are created by _magnifying_ up a special
+part of the whole thing. As with regular magnification, you need _lenses_ to do this, so, we provide the _lens_ and
+the _telescope_ focus on what is needed.
 
 ```typescript
 class Telescope<U> {
@@ -21,14 +25,39 @@ class Telescope<U> {
   public update(newState: U): void;
 
   public magnify<P>(lens: Lens<U, P>): Telescope<P>;
+  
+  public uplift<C>(value: C): Telescope<{ first: U; second: C; }>;
 }
 ```
 
-So it can be said that a _telescope_ is like a telescope (or a microscope) that focuses on fragments of a bigger universe and allows users to manipulate the whole universe through updates on the fragments.
+## API
+
+### Class Members
+
+* `of` Creates a new instance of Telescope containing the given initial value and inferring the type of the telescope
+   to the type of this value.
+
+### Instance Members
+
+* `evolve` Updates the state of a Telescope using a given evolution `[(a: A) => A]` as the representation of a
+   _delta_ to be applied. The resulting new state will be a new event in the associated stream.
+* `update` Updates the state on a Telescope to the given value causing a new event on the associated stream.
+* `magnify` Produces a new Telescope focused on states with a type that can be seen as a projection of the type
+   parameter of source Telescope. The projection is controlled by a _Lens_ wrapping the _setter_ and _getter_ functions.
+* `uplift` Produces a new Telescope of tuples where the first element is the state of this Telescope and the second one
+   is the given value. After the new Telescope has been generated, regular evolutions can be applied to the tuple
+   values. If the value of the first entry (coming from the source Telescope) is not updated, the source Telescope will
+   not emit new changes.
+
+So it can be said that a _telescope_ is like a telescope (or a microscope) that focuses on fragments of a bigger
+universe and allows users to manipulate the whole universe through updates on the fragments.
 
 ![system scope](docs_img/system_scope.png)
 
-A _lens_ is a pair of functions, one to get values from an bigger object and another one from creating big objects with a piece and a previos big object:
+## Lenses
+
+A _lens_ is a pair of functions, one to get values from an bigger object and another one from creating big objects with
+a piece and a previos big object:
 
 ```typescript
 {
@@ -39,17 +68,23 @@ A _lens_ is a pair of functions, one to get values from an bigger object and ano
 
 The final implementation is a bit more loaded, but this is the essence.
 
-Lenses can be composed, and this is one of their great features, once you can compose blocks of any type, you have a magical way to create new ones.
+Lenses can be composed, and this is one of their great features, once you can compose blocks of any type, you have a
+magical way to create new ones.
 
 To have a more concrete idea of what is going on we can look into an example: 
 
-Suppose you have a bicycle and while doing some fun riding you get a flat tire. You know how to temporarily fix a tube, but you have no clue on how to get the tube out from the bike. Fortunately you have two friends, the black squirrel that knows how to get a  wheel out from a bike and an avocet that knows how to get out a tube from a wheel, they of course know how to put things together.
+Suppose you have a bicycle and while doing some fun riding you get a flat tire. You know how to temporarily fix a tube,
+but you have no clue on how to get the tube out from the bike. Fortunately you have two friends, the black squirrel
+that knows how to get a  wheel out from a bike and an avocet that knows how to get out a tube from a wheel, they of
+course know how to put things together.
 
-So, how do you fix the tire? You give the bike to the black squirrel who returns you the wheel which you pass to the avocet who gives you the tube which you fix and give back to the avocet who gives you the wheel that you pass now to the black squirrel that finally returns you the whole working bike.
+So, how do you fix the tire? You give the bike to the black squirrel who returns you the wheel which you pass to the
+avocet who gives you the tube which you fix and give back to the avocet who gives you the wheel that you pass now to
+the black squirrel that finally returns you the whole working bike.
 
 ![bike fix](docs_img/bike_fix.png)
 
-Let’s make that more clear with code:
+Let’s make it more clear with code:
 
 ```typescript
 import {Telescope} from 'telescope';
@@ -87,19 +122,22 @@ const fixBike = (bike: Bike, ride: Telescope<Bike>): void =>
 
 The good part about this all is that the main pieces of functionality are clearly separated and can be easily tested:
 * Evolutions, which are or should be _pure_ functions, where you update the small fragments of your state.
-* Lenses, which are or should be pairs of _pure_ functions (`getter` and `setter`), where you extract fragments and put back together the bigger values.
+* Lenses, which are or should be pairs of _pure_ functions (`getter` and `setter`), where you extract fragments and put
+back together the bigger values.
 
 As an extra bonus, lenses can be composed so you can zoom in and out using them.
 
 ## Lens Composition
 
-Telescope lenses are special machines that can transform an _evolution_ on a type of values `A` into another _evolution_ on type of values `B`. That is, they are kind of a function from `Evolution<A>` to `Evolution<B>`. Let’s write them as:
+Telescope lenses are special machines that can transform an _evolution_ on a type of values `A` into another
+_evolution_ on type of values `B`. That is, they are kind of a function from `Evolution<A>` to `Evolution<B>`. Let’s
+write them as:
 
 ```
 Lens<A,B> kinda Evolution<A> ~> Evolution<B>
 ```
 
-And as functions they can be composed as long as the types matches):
+And as functions they can be composed as long as the types matches:
 
 ```
 Evolution<A> ~> Evolution<B> ~> Evolution<C>
@@ -107,7 +145,8 @@ Evolution<A> ~> Evolution<B> ~> Evolution<C>
 Evolution<A> ~> Evolution<C>
 ```
 
-As in regular typescript functions, there is no special operator for composition, but Telescope lenses are equipped with the method `compose` which does what we expect. In our previous example we can now do a small refactor:
+As in regular typescript functions, there is no special operator for composition, but Telescope lenses are equipped
+with the method `compose` which does what we expect. In our previous example we can now do a small refactor:
 
 ```typescript
 // …
@@ -120,11 +159,65 @@ const fixBike = (bike: Bike, ride: Telescope<Bike>): void =>
     .evolve(fixTube);
 ```
 
-Having composition is actually a big thing which allows for: reducing testing scenarios as only small lenses need to be tested, composite lenses are as good as its elements; and decoupling responsibilities as lenses can live in the code closer to the data structures they handle.
+Having composition is actually a big thing which allows for: reducing testing scenarios as only small lenses need to be
+tested, composite lenses are as good as its elements; and decoupling responsibilities as lenses can live in the code
+closer to the data structures they handle.
+
+## Uplifting
+
+Some times you want to have a big universe represented by a type `P`, the state of your universe is an instance of that
+type. But it may happen that you also want to be in another universe `T` that shares part of the state with the `P` 
+universe but also has some stuff of its own. Like if you were modeling a city and a houses in the city, some stuff is 
+internal to the house and you don't want to keep track of it in the city.
+
+The uplift method is the Telescope version of 'What happens in Vegas stay in Vegas'. Let's suppose you have a sate type:
+
+```typescript
+interface Universe {
+  readonly planets: Planet[];
+  readonly stars: Star[];
+}
+```
+
+And you also have another type that shares the Stars part of the universe:
+
+```typescript
+interface Constellations {
+  readonly stars: Star[];
+  readonly figures: Figures[];
+}
+``` 
+
+You don't want to affect the universe when you change the _figures_ in your constellations, after all, people is always 
+looking for new forms in the stars! 
+
+The way to solve this is with `uplift`:
+
+```typescript
+const universe: Telescope<Universe>;            // Somehow you got a telescope for the universe. 
+const starLens: Lens<Universe, Constellations>; // A lens to focus on the stars.
+const initialFigures: Figures[];                // Some figures to start with;
+
+// We also need a translation between generic pairs and constellations:
+const pairToConstellations: (pair: { first: U; second: C; }) => ({stars: pair.first, figures: pair.second});
+const constellationsToPair: (cs: Constellations) => ({first: cs.stars, seccond: figures});
+
+const constellations: Telescope<Constellations> = universe
+   .magnify(starLens)
+   .uplift(initialFigures)
+   .dimap(pairToConstellations, constellationsToPair);
+```
+
+In the _uplifted_ Telescope `constellations`, if you update the figures property, for example adding an extra element 
+or removing one, the stream exposed in `constellations` will emit, but the stream from the original Telescope 
+`universe` will not. The `figures` change stays in its scoped Telescope. On the other hand, if the update is on the 
+`stars` property, both Telescopes will emit.
+
 
 ## Using Telescope
 
-We’ll see how to use Telescope in a simplified TODO application. Let’s start with a general domain definition agnostic of any framework:
+We’ll see how to use Telescope in a simplified TODO application. Let’s start with a general domain definition agnostic
+of any framework:
 
 ```typescript
 // A type for the global state.
@@ -186,10 +279,11 @@ const todoAtLens = (index: number) =>
 ```
 
 
-
 ### React
 
-This example shows how to integrate Telescope in a React application using the _Redux style_ which is to have a global state. The state is represented and maintained by a single stream inside a Telescope. We’ll use lenses and magnification only to keep a handle for our side effects.
+This example shows how to integrate Telescope in a React application using the _Redux style_ which is to have a global
+state. The state is represented and maintained by a single stream inside a Telescope. We’ll use lenses and
+magnification only to keep a handle for our side effects.
 
 As a bootstrap for the application we need something like:
 
@@ -220,7 +314,8 @@ export const App = (props: IProps) =>
   </div>;
 ```
 
-In React it will be easier to do state projections directly against the `props` of the components, but you can for sure use the getters.
+In React it will be easier to do state projections directly against the `props` of the components, but you can for sure
+use the getters.
 
 ```typescript
 interface IProps {
@@ -281,7 +376,8 @@ export const TodoItem = (props: IProps) =>
   </li>;
 ```
 
-Although this example is pretty simple and not even includes Lens composition, it shows the basics on how to integrate Telescope with React.
+Although this example is pretty simple and not even includes Lens composition, it shows the basics on how to integrate
+Telescope with React.
 
 ### Angular
 
@@ -585,39 +681,61 @@ very simple in terms of logic, which results in components easier to test and  t
 
 ## The Story
 
-This story goes more or less as you would expect: How to handle changes on state in an application where many actors need to react to those changes and many actors are producing those changes?
+This story goes more or less as you would expect: How to handle changes on state in an application where many actors
+need to react to those changes and many actors are producing those changes?
 
-The idea behind Telescope is that each change can be seen as a delta to the previous state, and the first challenge we face is that unless the state is some kind of _number-like_ value, it is not clear what a _delta_ is in this context. The key is that we don’t really need to know what this _delta_ is nor how to _add_ it to the previous state value, we can trust Telescope users to know what to do and encapsulate the _delta_ and the _adding_ process in a function, a function that will take a state value and return a new one:
+The idea behind Telescope is that each change can be seen as a delta to the previous state, and the first challenge we
+face is that unless the state is some kind of _number-like_ value, it is not clear what a _delta_ is in this context.
+The key is that we don’t really need to know what this _delta_ is nor how to _add_ it to the previous state value, we
+can trust Telescope users to know what to do and encapsulate the _delta_ and the _adding_ process in a function, a
+function that will take a state value and return a new one:
 
 ```typescript
 (s: State) => State
 ```
 
-We call these type of functions `Evolutions` but they have other names too, in Mathematics they are commonly known as _endomorphisms_.
+We call these type of functions `Evolutions` but they have other names too, in Mathematics they are commonly known as
+_endomorphisms_.
 
-There is a caveat of course. As there are many values for this _deltas_ and maybe different _adding_ processes depending on the particular interaction happening in the application, there will be potentially many evolutions. In Telescope this is OK, evolutions are treated as regular values.
+There is a caveat of course. As there are many values for this _deltas_ and maybe different _adding_ processes
+depending on the particular interaction happening in the application, there will be potentially many evolutions. In
+Telescope this is OK, evolutions are treated as regular values.
 
 The Telescope idea comes from answering this question: What do we do with all these evolutions to get back our states?
 
-The first observation we can do is that these evolutions are not just given, they are pumping up as the user, other systems or even internal processes interact with our application.
+The first observation we can do is that these evolutions are not just given, they are pumping up as the user, other
+systems or even internal processes interact with our application.
 
-The way Telescope deals with this is a common pattern: Streams. But these are special streams, they are streams of evolutions, which is, streams of functions, we still need to figure out where to get values again.
+The way Telescope deals with this is a common pattern: Streams. But these are special streams, they are streams of
+evolutions, which is, streams of functions, we still need to figure out where to get values again.
 
-Fortunately, streams belong to a big family of things that can be _folded_ and one special way of _folding_ is to generate a new _foldable_ with the partial results of the _folding_ steps. This _folding_ is commonly named `scan`.
+Fortunately, streams belong to a big family of things that can be _folded_ and one special way of _folding_ is to
+generate a new _foldable_ with the partial results of the _folding_ steps. This _folding_ is commonly named `scan`.
 
-Putting all together means to take the stream of evolutions and scan through it providing an initial state value as a seed (this value may come from a database or simply be a default state). And this is what a _telescope_ is: a convenient wrapper for a stream of evolutions so we can convert them into a stream of values.
+Putting all together means to take the stream of evolutions and scan through it providing an initial state value as a
+seed (this value may come from a database or simply be a default state). And this is what a _telescope_ is: a
+convenient wrapper for a stream of evolutions so we can convert them into a stream of values.
 
-The second part of this story is about how we can interact with these _telescopes_ and how we can create new ones from existing ones. That is, how can we create a world that _telescopes_ can inhabit?
+The second part of this story is about how we can interact with these _telescopes_ and how we can create new ones from
+existing ones. That is, how can we create a world that _telescopes_ can inhabit?
 
-Telescopes can be seen as consumers of values of a given type, let’s say `U` and produce values of the same type `U` through a stream. In order to convert a Telescope of `U`’s to a Telescope of `P`’s, we’ll need to provide two functions, one from `U` to `P` and another one from `P` to `U`.
+Telescopes can be seen as consumers of values of a given type, let’s say `U` and produce values of the same type `U`
+through a stream. In order to convert a Telescope of `U`’s to a Telescope of `P`’s, we’ll need to provide two
+functions, one from `U` to `P` and another one from `P` to `U`.
 
-This is all fine as long as this functions are inverses one to the other, but in many situations we want to convert the original `U` type into a _smaller_ `P`, that is, `P` has lees information than `U`. We do this through Lenses, a special attraction originally intended as a data accessor for nested structures. When we use a Lens to transform a Telescope, we say we do a _magnification_, that is, we use the given Lens to look only into the details that will be represented in the type `P`.
+This is all fine as long as this functions are inverses one to the other, but in many situations we want to convert the
+original `U` type into a _smaller_ `P`, that is, `P` has lees information than `U`. We do this through Lenses, a
+special attraction originally intended as a data accessor for nested structures. When we use a Lens to transform a
+Telescope, we say we do a _magnification_, that is, we use the given Lens to look only into the details that will be
+represented in the type `P`.
 
 ## Lenses
 
-Lenses most common representation was described and implemented by Edward Kmett for Haskell ([github@ekmett/lens](https://github.com/ekmett/lens)) and since then have been getting more and more attention as a powerful abstraction for composable accessors.
+Lenses most common representation was described and implemented by Edward Kmett for Haskell ([github@ekmett/lens](https://github.com/ekmett/lens))
+and since then have been getting more and more attention as a powerful abstraction for composable accessors.
 
-Lenses are one of many other optics and while we only use lenses in Telescope, we are planning to add Prisms and other toys to the box.
+Lenses are one of many other optics and while we only use lenses in Telescope, we are planning to add Prisms and other
+toys to the box.
 
 ## Development
 
@@ -655,19 +773,28 @@ Commands:
 
 * **Jasmine** is a test framework for JS. [jasmine.github.io](https://jasmine.github.io/).
 * **Karma** is a test runner. [karma-runner.github.io](https://karma-runner.github.io/2.0/index.html).
-* **RxJS** is a library for Streams, Sinks and other reactive toys. [rxjs-dev.firebaseapp.com](https://rxjs-dev.firebaseapp.com/). This is the only peer dependency for Telescope, all other stuff is used only for the developers contributing to Telescope itself.
-* **Typescript** is superset of Javascript that basically adds type annotations. We use it because we love types! [typescriptlang.org](https://typescriptlang.org).
+* **RxJS** is a library for Streams, Sinks and other reactive toys. [rxjs-dev.firebaseapp.com](https://rxjs-dev.firebaseapp.com/).
+  This is the only peer dependency for Telescope, all other stuff is used only for the developers contributing to
+  Telescope itself.
+* **Typescript** is superset of Javascript that basically adds type annotations. We use it because we love types!
+  [typescriptlang.org](https://typescriptlang.org).
 	* **TSLint** is a linter for Typescript. [palantir.github.io/tslint](https://palantir.github.io/tslint/).
-* **Webpack** (and **Webpack-CLI**) is a bundler tool commonly used in front end projects. We use it here as a helper for running tests and to transpire UMD modules. [webpack.js.org](https://webpack.js.org/).
-	* **Awesome Typescript Loader** allows easy transpilation of Typescript code. [github@s-panferov/awesome-typescript-loader](https://github.com/s-panferov/awesome-typescript-loader).
-	* **Istanbul Instrumenter Loader** remaps coverage reports using source maps. Used only here for coverage reports. [github@webpack-contrib/istanbul-instrumenter-loader](https://github.com/webpack-contrib/istanbul-instrumenter-loader).
+* **Webpack** (and **Webpack-CLI**) is a bundler tool commonly used in front end projects. We use it here as a helper
+  for running tests and to transpire UMD modules. [webpack.js.org](https://webpack.js.org/).
+	* **Awesome Typescript Loader** allows easy transpilation of Typescript code.
+	  [github@s-panferov/awesome-typescript-loader](https://github.com/s-panferov/awesome-typescript-loader).
+	* **Istanbul Instrumenter Loader** remaps coverage reports using source maps. Used only here for coverage reports.
+	  [github@webpack-contrib/istanbul-instrumenter-loader](https://github.com/webpack-contrib/istanbul-instrumenter-loader).
 	* **Source Map Loader** generates source maps from transpilation.
 
 ### Texts
 
-* G. Boisseau and J. Gibbons, [What you needa know about yoneda: profunctor optics and the yoneda lemma (functional pearl)](https://www.cs.ox.ac.uk/jeremy.gibbons/publications/proyo.pdf), Proceedings of the ACM on Programming Languages, 2 (2018), p. 84.
+* G. Boisseau and J. Gibbons, [What you needa know about yoneda: profunctor optics and the yoneda lemma (functional pearl)](https://www.cs.ox.ac.uk/jeremy.gibbons/publications/proyo.pdf),
+  Proceedings of the ACM on Programming Languages, 2 (2018), p. 84.
 * M. Botto. _[Compiling and bundling TypeScript libraries with Webpack](https://marcobotto.com/blog/compiling-and-bundling-typescript-libraries-with-webpack/)_.
-* S. P. Jones, [Lenses: compositional data access and manipulation](https://skillsmatter.com/skillscasts/4251-lenses-compositional-data-access-and-manipulation), October 2013.
-* E. Kmett, [Lenses, folds and traversals](http://comonad.com/haskell/Lenses-Folds-and-Traversals-NYC.pdf), in Talk at New York Haskell User Group Meeting, 2012.
+* S. P. Jones, [Lenses: compositional data access and manipulation](https://skillsmatter.com/skillscasts/4251-lenses-compositional-data-access-and-manipulation),
+  October 2013.
+* E. Kmett, [Lenses, folds and traversals](http://comonad.com/haskell/Lenses-Folds-and-Traversals-NYC.pdf),
+  in Talk at New York Haskell User Group Meeting, 2012.
 
 You will find a [_bibTex_ file](./telescope.bib) in this repo in the remote case you need or want to use it.
