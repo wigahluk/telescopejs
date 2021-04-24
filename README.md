@@ -4,11 +4,15 @@
 # ![telescope](telescope.png) Telescope
 
 
-Telescope is another state management library for JS ecosystem, this time based on lenses. It's an alternative to Redux for the brave as it's still a baby learning to give its first steps.
+Telescope is another state management library for JS ecosystem, this time based on lenses. It's an alternative to Redux
+for the brave as it's still a baby learning to give its first steps.
 
 ## The Basics
 
-A _telescope_ is a special object that handle changes on a complex state by providing handlers to smaller pieces of the big structure, each of these handlers is a new _telescope_ and they are created by _magnifying_ up a special part of the whole thing. As with regular magnification, you need _lenses_ to do this, so, we provide the _lens_ and the _telescope_ focus on what is needed.
+A _telescope_ is a special object that handle changes on a complex state by providing handlers to smaller pieces of the
+big structure, each of these handlers is a new _telescope_ and they are created by _magnifying_ up a special part of the
+whole thing. As with regular magnification, you need _lenses_ to do this, so, we provide the _lens_ and the _telescope_
+focus on what is needed.
 
 ```typescript
 class Telescope<U> {
@@ -24,11 +28,13 @@ class Telescope<U> {
 }
 ```
 
-So it can be said that a _telescope_ is like a telescope (or a microscope) that focuses on fragments of a bigger universe and allows users to manipulate the whole universe through updates on the fragments.
+So it can be said that a _telescope_ is like a telescope (or a microscope) that focuses on fragments of a bigger
+universe and allows users to manipulate the whole universe through updates on the fragments.
 
 ![system scope](docs_img/system_scope.png)
 
-A _lens_ is a pair of functions, one to get values from an bigger object and another one from creating big objects with a piece and a previos big object:
+A _lens_ is a pair of functions, one to get values from an bigger object and another one from creating big objects with
+a piece and a previos big object:
 
 ```typescript
 {
@@ -39,13 +45,19 @@ A _lens_ is a pair of functions, one to get values from an bigger object and ano
 
 The final implementation is a bit more loaded, but this is the essence.
 
-Lenses can be composed, and this is one of their great features, once you can compose blocks of any type, you have a magical way to create new ones.
+Lenses can be composed, and this is one of their great features, once you can compose blocks of any type, you have a
+magical way to create new ones.
 
 To have a more concrete idea of what is going on we can look into an example: 
 
-Suppose you have a bicycle and while doing some fun riding you get a flat tire. You know how to temporarily fix a tube, but you have no clue on how to get the tube out from the bike. Fortunately you have two friends, the black squirrel that knows how to get a  wheel out from a bike and an avocet that knows how to get out a tube from a wheel, they of course know how to put things together.
+Suppose you have a bicycle and while doing some fun riding you get a flat tire. You know how to temporarily fix a tube,
+but you have no clue on how to get the tube out from the bike. Fortunately you have two friends, the black squirrel that
+knows how to get a  wheel out from a bike and an avocet that knows how to get out a tube from a wheel, they of course
+know how to put things together.
 
-So, how do you fix the tire? You give the bike to the black squirrel who returns you the wheel which you pass to the avocet who gives you the tube which you fix and give back to the avocet who gives you the wheel that you pass now to the black squirrel that finally returns you the whole working bike.
+So, how do you fix the tire? You give the bike to the black squirrel who returns you the wheel which you pass to the
+avocet who gives you the tube which you fix and give back to the avocet who gives you the wheel that you pass now to the
+black squirrel that finally returns you the whole working bike.
 
 ![bike fix](docs_img/bike_fix.png)
 
@@ -87,13 +99,15 @@ const fixBike = (bike: Bike, ride: Telescope<Bike>): void =>
 
 The good part about this all is that the main pieces of functionality are clearly separated and can be easily tested:
 * Evolutions, which are or should be _pure_ functions, where you update the small fragments of your state.
-* Lenses, which are or should be pairs of _pure_ functions (`getter` and `setter`), where you extract fragments and put back together the bigger values.
+* Lenses, which are or should be pairs of _pure_ functions (`getter` and `setter`), where you extract fragments and put
+back together the bigger values.
 
 As an extra bonus, lenses can be composed so you can zoom in and out using them.
 
 ## Lens Composition
 
-Telescope lenses are special machines that can transform an _evolution_ on a type of values `A` into another _evolution_ on type of values `B`. That is, they are kind of a function from `Evolution<A>` to `Evolution<B>`. Let’s write them as:
+Telescope lenses are special machines that can transform an _evolution_ on a type of values `A` into another _evolution_
+on type of values `B`. That is, they are kind of a function from `Evolution<A>` to `Evolution<B>`. Let’s write them as:
 
 ```
 Lens<A,B> kinda Evolution<A> ~> Evolution<B>
@@ -107,7 +121,8 @@ Evolution<A> ~> Evolution<B> ~> Evolution<C>
 Evolution<A> ~> Evolution<C>
 ```
 
-As in regular typescript functions, there is no special operator for composition, but Telescope lenses are equipped with the method `compose` which does what we expect. In our previous example we can now do a small refactor:
+As in regular typescript functions, there is no special operator for composition, but Telescope lenses are equipped with
+the method `compose` which does what we expect. In our previous example we can now do a small refactor:
 
 ```typescript
 // …
@@ -120,11 +135,14 @@ const fixBike = (bike: Bike, ride: Telescope<Bike>): void =>
     .evolve(fixTube);
 ```
 
-Having composition is actually a big thing which allows for: reducing testing scenarios as only small lenses need to be tested, composite lenses are as good as its elements; and decoupling responsibilities as lenses can live in the code closer to the data structures they handle.
+Having composition is actually a big thing which allows for: reducing testing scenarios as only small lenses need to be
+tested, composite lenses are as good as its elements; and decoupling responsibilities as lenses can live in the code
+closer to the data structures they handle.
 
 ## Using Telescope
 
-We’ll see how to use Telescope in a simplified TODO application. Let’s start with a general domain definition agnostic of any framework:
+We’ll see how to use Telescope in a simplified TODO application. Let’s start with a general domain definition agnostic
+of any framework:
 
 ```typescript
 // A type for the global state.
@@ -189,7 +207,9 @@ const todoAtLens = (index: number) =>
 
 ### React
 
-This example shows how to integrate Telescope in a React application using the _Redux style_ which is to have a global state. The state is represented and maintained by a single stream inside a Telescope. We’ll use lenses and magnification only to keep a handle for our side effects.
+This example shows how to integrate Telescope in a React application using the _Redux style_ which is to have a global
+state. The state is represented and maintained by a single stream inside a Telescope. We’ll use lenses and magnification
+ only to keep a handle for our side effects.
 
 As a bootstrap for the application we need something like:
 
@@ -220,7 +240,8 @@ export const App = (props: IProps) =>
   </div>;
 ```
 
-In React it will be easier to do state projections directly against the `props` of the components, but you can for sure use the getters.
+In React it will be easier to do state projections directly against the `props` of the components, but you can for sure
+use the getters.
 
 ```typescript
 interface IProps {
